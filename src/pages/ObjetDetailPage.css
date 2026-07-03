@@ -1,0 +1,52 @@
+/* Conteneur de chargement au centre */
+.objet-detail-loading {
+  text-align: center;
+  padding-top: 80px;
+}
+
+/* Section du QR Code */
+.objet-detail-qr-section {
+  margin-top: 32px;
+  text-align: center;
+}
+
+.objet-detail-qr-title {
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.objet-detail-qr-image {
+  width: 200px;
+  height: 200px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.objet-detail-qr-value {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 12px 0;
+  font-family: monospace;
+  font-size: 11px;
+  word-break: break-all;
+  color: #555;
+}
+
+/* Erreur en haut du formulaire */
+.objet-detail-error {
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+/* Boutons d'action */
+.objet-detail-actions {
+  margin-top: 32px;
+  display: flex;
+  gap: 12px;
+}
+
+.objet-detail-actions button {
+  flex: 1;
+}

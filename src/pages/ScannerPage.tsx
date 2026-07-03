@@ -1,15 +1,15 @@
 // src/pages/ScannerPage.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   IonPage, IonHeader, IonToolbar, IonTitle, IonContent,
-  IonButton, IonText, IonSpinner, IonIcon, IonToast,
-  IonAlert, IonNote,
+  IonButton, IonText, IonSpinner, IonIcon, IonToast, IonNote,
 } from '@ionic/react';
 import { checkmarkCircleOutline, flashlightOutline } from 'ionicons/icons';
-import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+import { BarcodeScanner, BarcodeFormat } from '@capacitor-mlkit/barcode-scanning';
 import { Geolocation }    from '@capacitor/geolocation';
 import { ApiService }     from '../services/ApiService';
 import { StorageService } from '../services/StorageService';
+import './ScannerPage.css';
 
 const ScannerPage: React.FC = () => {
 
@@ -42,7 +42,7 @@ const ScannerPage: React.FC = () => {
     try {
       // Lancer le scan (s'arrête dès qu'un QR est détecté)
       const { barcodes } = await BarcodeScanner.scan({
-        formats: ['QR_CODE'],
+        formats: [BarcodeFormat.QrCode],
       });
 
       if (!barcodes.length) {
@@ -50,7 +50,11 @@ const ScannerPage: React.FC = () => {
         return;
       }
 
-      const valeur = barcodes[0].rawValue;
+      const valeur = barcodes[0]?.rawValue;
+      if (!valeur) {
+        setErreur('QR Code invalide.');
+        return;
+      }
 
       // Vérifier que c'est un QR Code LOCI (format : LOCI-XXXXXXXX)
       if (!valeur.startsWith('LOCI-')) {
@@ -61,9 +65,10 @@ const ScannerPage: React.FC = () => {
       setResultat(valeur);
       await enregistrerPosition(valeur);
 
-    } catch (e: any) {
-      if (!e.message?.includes('cancelled'))
-        setErreur('Erreur lors du scan : ' + e.message);
+    } catch (e: unknown) {
+      const error = e as Error;
+      if (!error.message?.includes('cancelled'))
+        setErreur('Erreur lors du scan : ' + error.message);
     } finally {
       setScanning(false);
     }
@@ -122,11 +127,12 @@ const ScannerPage: React.FC = () => {
         setToast('📶 Hors-ligne — scan mis en file de synchronisation.');
       }
 
-    } catch (e: any) {
-      if (e.message?.includes('timeout') || e.message?.includes('location')) {
+    } catch (e: unknown) {
+      const error = e as Error;
+      if (error.message?.includes('timeout') || error.message?.includes('location')) {
         setErreur('GPS indisponible. Vérifiez que la localisation est activée.');
       } else {
-        setErreur('Erreur GPS : ' + e.message);
+        setErreur('Erreur GPS : ' + error.message);
       }
     } finally {
       setSaving(false);
@@ -150,30 +156,14 @@ const ScannerPage: React.FC = () => {
       <IonContent className="ion-padding">
 
         {/* ── Zone de scan ─────────────────────────────────────────────────── */}
-        <div style={{ textAlign: 'center', paddingTop: 40 }}>
+        <div className="scanner-container">
 
           {/* Cadre visuel du scanner */}
-          <div style={{
-            width: 240, height: 240,
-            border: '3px solid var(--ion-color-primary)',
-            borderRadius: 16,
-            margin: '0 auto 32px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: scanning ? 'rgba(0,0,0,0.05)' : '#f9f9f9',
-            position: 'relative',
-            overflow: 'hidden',
-          }}>
+          <div className={`scanner-frame ${scanning ? 'scanning' : ''}`}>
             {scanning ? (
               <>
                 {/* Ligne de scan animée */}
-                <div style={{
-                  position: 'absolute',
-                  width: '80%', height: 2,
-                  background: 'var(--ion-color-primary)',
-                  animation: 'scan-line 2s linear infinite',
-                }} />
+                <div className="scanner-line" />
                 <IonSpinner name="lines" style={{ fontSize: 40 }} />
               </>
             ) : resultat ? (
@@ -191,15 +181,12 @@ const ScannerPage: React.FC = () => {
 
           {/* Résultat du scan */}
           {resultat && !saving && (
-            <div style={{
-              background: '#E8F5E9', borderRadius: 12,
-              padding: '16px 20px', marginBottom: 24,
-            }}>
-              <p style={{ margin: 0, fontWeight: 600, color: '#2E7D32' }}>
+            <div className="scanner-result">
+              <p className="scanner-result-title">
                 ✅ QR Code scanné avec succès
               </p>
               {nomObjet && (
-                <p style={{ margin: '4px 0 0', color: '#555' }}>
+                <p className="scanner-result-object">
                   Objet : <strong>{nomObjet}</strong>
                 </p>
               )}
@@ -208,9 +195,9 @@ const ScannerPage: React.FC = () => {
 
           {/* Sauvegarde en cours */}
           {saving && (
-            <div style={{ marginBottom: 24 }}>
+            <div className="scanner-saving">
               <IonSpinner name="crescent" />
-              <p style={{ color: '#888', marginTop: 8 }}>
+              <p className="scanner-saving-text">
                 Enregistrement de la position GPS…
               </p>
             </div>
@@ -219,7 +206,7 @@ const ScannerPage: React.FC = () => {
           {/* Erreur */}
           {erreur && (
             <IonText color="danger">
-              <p style={{ marginBottom: 24, fontSize: 14 }}>{erreur}</p>
+              <p className="scanner-error">{erreur}</p>
             </IonText>
           )}
 
@@ -229,7 +216,7 @@ const ScannerPage: React.FC = () => {
             size="large"
             onClick={demarrerScan}
             disabled={scanning || saving}
-            style={{ marginBottom: 12 }}
+            className="scanner-button"
           >
             {scanning ? 'Scan en cours…' : '📷  Scanner un QR Code'}
           </IonButton>
@@ -257,15 +244,6 @@ const ScannerPage: React.FC = () => {
         </div>
 
       </IonContent>
-
-      {/* Animation CSS scan */}
-      <style>{`
-        @keyframes scan-line {
-          0%   { top: 10%; }
-          50%  { top: 85%; }
-          100% { top: 10%; }
-        }
-      `}</style>
 
       <IonToast
         isOpen={!!toast}

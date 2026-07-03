@@ -1,5 +1,5 @@
 // src/pages/ObjetDetailPage.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   IonPage, IonHeader, IonToolbar, IonTitle, IonContent,
   IonItem, IonLabel, IonInput, IonSelect, IonSelectOption,
@@ -12,9 +12,10 @@ import { ApiService }     from '../services/ApiService';
 import { StorageService } from '../services/StorageService';
 import { QrService }      from '../services/QrService';
 import {
-  Objet, CreateObjetDto, UpdateObjetDto,
+  CreateObjetDto, UpdateObjetDto,
   CategorieObjet, TypeConnectivite,
 } from '../models/ObjetModel';
+import './ObjetDetailPage.css';
 
 const ObjetDetailPage: React.FC = () => {
   const { id }  = useParams<{ id?: string }>();
@@ -36,19 +37,7 @@ const ObjetDetailPage: React.FC = () => {
   const [erreur,    setErreur]    = useState('');
   const [toast,     setToast]     = useState('');
 
-  // ── Chargement en mode modification ──────────────────────────────────────
-  useEffect(() => {
-    if (!isModeCreation) chargerObjet();
-  }, [id]);
-
-  // Génère le QR Code visuel dès qu'on a la valeur
-  useEffect(() => {
-    if (qrCode) {
-      QrService.genererDataUrl(qrCode).then(setQrDataUrl);
-    }
-  }, [qrCode]);
-
-  const chargerObjet = async () => {
+  const chargerObjet = useCallback(async () => {
     setLoading(true);
     try {
       const local = await StorageService.getObjets();
@@ -64,7 +53,19 @@ const ObjetDetailPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  // ── Chargement en mode modification ──────────────────────────────────────
+  useEffect(() => {
+    if (!isModeCreation) chargerObjet();
+  }, [isModeCreation, chargerObjet]);
+
+  // Génère le QR Code visuel dès qu'on a la valeur
+  useEffect(() => {
+    if (qrCode) {
+      QrService.genererDataUrl(qrCode).then(setQrDataUrl);
+    }
+  }, [qrCode]);
 
   // ── Validation ────────────────────────────────────────────────────────────
   const valider = (): string | null => {
@@ -165,7 +166,7 @@ const ObjetDetailPage: React.FC = () => {
     return (
       <IonPage>
         <IonContent>
-          <div style={{ textAlign: 'center', paddingTop: 80 }}>
+          <div className="objet-detail-loading">
             <IonSpinner name="crescent" />
           </div>
         </IonContent>
@@ -191,7 +192,7 @@ const ObjetDetailPage: React.FC = () => {
         {/* Erreur */}
         {erreur && (
           <IonText color="danger">
-            <p style={{ padding: '8px 0', fontSize: 14 }}>{erreur}</p>
+            <p className="objet-detail-error">{erreur}</p>
           </IonText>
         )}
 
@@ -249,8 +250,8 @@ const ObjetDetailPage: React.FC = () => {
 
         {/* ── QR Code (mode modification uniquement — F-OBJ-04) ──────────── */}
         {!isModeCreation && qrCode && (
-          <div style={{ marginTop: 32, textAlign: 'center' }}>
-            <p style={{ fontWeight: 600, marginBottom: 12 }}>
+          <div className="objet-detail-qr-section">
+            <p className="objet-detail-qr-title">
               <IonIcon icon={qrCodeOutline} /> QR Code de l'objet
             </p>
 
@@ -259,22 +260,12 @@ const ObjetDetailPage: React.FC = () => {
               <img
                 src={qrDataUrl}
                 alt="QR Code"
-                style={{
-                  width: 200, height: 200,
-                  border: '1px solid #eee',
-                  borderRadius: 8,
-                  padding: 8,
-                }}
+                className="objet-detail-qr-image"
               />
             )}
 
             {/* Valeur brute (non modifiable — F-OBJ-04) */}
-            <div style={{
-              background: '#f5f5f5', borderRadius: 8,
-              padding: '10px 14px', margin: '12px 0',
-              fontFamily: 'monospace', fontSize: 11,
-              wordBreak: 'break-all', color: '#555',
-            }}>
+            <div className="objet-detail-qr-value">
               {qrCode}
             </div>
 
@@ -293,11 +284,10 @@ const ObjetDetailPage: React.FC = () => {
         )}
 
         {/* ── Boutons d'action ────────────────────────────────────────────── */}
-        <div style={{ marginTop: 32, display: 'flex', gap: 12 }}>
+        <div className="objet-detail-actions">
           <IonButton
             fill="outline"
             expand="block"
-            style={{ flex: 1 }}
             onClick={() => history.goBack()}
             disabled={saving}
           >
@@ -305,7 +295,6 @@ const ObjetDetailPage: React.FC = () => {
           </IonButton>
           <IonButton
             expand="block"
-            style={{ flex: 1 }}
             onClick={sauvegarder}
             disabled={saving}
           >

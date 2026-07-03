@@ -1,0 +1,97 @@
+/* Conteneur de la zone de scan */
+.scanner-container {
+  text-align: center;
+  padding-top: 40px;
+}
+
+/* Cadre visuel du scanner */
+.scanner-frame {
+  width: 240px;
+  height: 240px;
+  border: 3px solid var(--ion-color-primary);
+  border-radius: 16px;
+  margin: 0 auto 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.scanner-frame.scanning {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.scanner-frame:not(.scanning) {
+  background: #f9f9f9;
+}
+
+/* Ligne de scan animée */
+.scanner-line {
+  position: absolute;
+  width: 80%;
+  height: 2px;
+  background: var(--ion-color-primary);
+  animation: scan-line 2s linear infinite;
+}
+
+@keyframes scan-line {
+  0% { top: 10%; }
+  50% { top: 85%; }
+  100% { top: 10%; }
+}
+
+/* Texte instructions du scanner */
+.scanner-instruction {
+  color: #bbb;
+  font-size: 14px;
+  padding: 20px;
+}
+
+/* Résultat du scan */
+.scanner-result {
+  background: #E8F5E9;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+}
+
+.scanner-result-title {
+  margin: 0;
+  font-weight: 600;
+  color: #2E7D32;
+}
+
+.scanner-result-object {
+  margin: 4px 0 0;
+  color: #555;
+}
+
+/* Sauvegarde en cours */
+.scanner-saving {
+  margin-bottom: 24px;
+}
+
+.scanner-saving-text {
+  color: #888;
+  margin-top: 8px;
+}
+
+/* Message d'erreur */
+.scanner-error {
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+/* Bouton scanner */
+.scanner-button {
+  margin-bottom: 12px;
+}
+
+/* Note d'information */
+.scanner-note {
+  display: block;
+  margin-top: 24px;
+  font-size: 12px;
+  color: #aaa;
+}
